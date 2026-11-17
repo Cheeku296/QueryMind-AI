@@ -1,0 +1,1015 @@
+{
+  "benchmark_timestamp": "2026-11-17T11:02:04Z",
+  "total_cases": 50,
+  "successful_cases": 50,
+  "success_rate_pct": 100.0,
+  "average_recall_pct": 67.0,
+  "average_latency_ms": 13.92,
+  "results": [
+    {
+      "case_id": 1,
+      "question": "How many employees are in each department?",
+      "expected_tables": [
+        "departments",
+        "employees"
+      ],
+      "retrieved_tables": [
+        "employees",
+        "payments",
+        "orders",
+        "order_items",
+        "departments"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT d.name, COUNT(e.id) FROM departments AS d LEFT JOIN employees AS e ON d.id = e.department_id GROUP BY d.name ORDER BY 2 DESC LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 7,
+      "latency_ms": 18
+    },
+    {
+      "case_id": 2,
+      "question": "Which five products generated the highest revenue?",
+      "expected_tables": [
+        "products",
+        "order_items"
+      ],
+      "retrieved_tables": [
+        "departments",
+        "subscriptions",
+        "employees",
+        "order_items",
+        "orders",
+        "customers"
+      ],
+      "recall": 0.5,
+      "sql": "SELECT p.name, SUM(oi.subtotal) AS rev FROM order_items AS oi JOIN products AS p ON p.id = oi.product_id GROUP BY p.name ORDER BY rev DESC LIMIT 5",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 5,
+      "latency_ms": 16
+    },
+    {
+      "case_id": 3,
+      "question": "Show monthly revenue for the previous six months.",
+      "expected_tables": [
+        "orders"
+      ],
+      "retrieved_tables": [
+        "departments",
+        "customers",
+        "orders",
+        "order_items",
+        "employees"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT CAST(DATE_TRUNC('MONTH', order_date) AS DATE) AS m, SUM(total_amount) AS rev FROM orders WHERE status = 'completed' GROUP BY m ORDER BY m DESC LIMIT 6",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 6,
+      "latency_ms": 15
+    },
+    {
+      "case_id": 4,
+      "question": "Which customers have not placed an order?",
+      "expected_tables": [
+        "customers",
+        "orders"
+      ],
+      "retrieved_tables": [
+        "customers",
+        "orders",
+        "order_items",
+        "departments",
+        "employees"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT c.id, c.first_name, c.last_name, c.email FROM customers AS c LEFT JOIN orders AS o ON c.id = o.customer_id WHERE o.id IS NULL LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 11,
+      "latency_ms": 14
+    },
+    {
+      "case_id": 5,
+      "question": "What is the average order value?",
+      "expected_tables": [
+        "orders"
+      ],
+      "retrieved_tables": [
+        "employees",
+        "order_items",
+        "payments",
+        "orders",
+        "departments"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT ROUND(CAST(AVG(total_amount) AS DECIMAL), 2) AS aov FROM orders WHERE status = 'completed' LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 1,
+      "latency_ms": 12
+    },
+    {
+      "case_id": 6,
+      "question": "Which department has the highest average salary?",
+      "expected_tables": [
+        "departments",
+        "employees"
+      ],
+      "retrieved_tables": [
+        "customers",
+        "order_items",
+        "orders",
+        "employees",
+        "departments"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT d.name, ROUND(CAST(AVG(e.salary) AS DECIMAL), 2) AS avg_sal FROM departments AS d JOIN employees AS e ON d.id = e.department_id GROUP BY d.name ORDER BY avg_sal DESC LIMIT 1",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 1,
+      "latency_ms": 16
+    },
+    {
+      "case_id": 7,
+      "question": "Show the top ten customers by lifetime spending.",
+      "expected_tables": [
+        "customers",
+        "orders"
+      ],
+      "retrieved_tables": [
+        "employees",
+        "customers",
+        "orders",
+        "order_items",
+        "departments"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT c.id, c.first_name, c.last_name, SUM(o.total_amount) AS lifetime_spend FROM customers AS c JOIN orders AS o ON c.id = o.customer_id WHERE o.status = 'completed' GROUP BY c.id, c.first_name, c.last_name ORDER BY lifetime_spend DESC LIMIT 10",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 10,
+      "latency_ms": 16
+    },
+    {
+      "case_id": 8,
+      "question": "Compare monthly order counts.",
+      "expected_tables": [
+        "orders"
+      ],
+      "retrieved_tables": [
+        "orders",
+        "departments",
+        "subscriptions",
+        "payments",
+        "products",
+        "order_items",
+        "employees",
+        "customers"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT CAST(DATE_TRUNC('MONTH', order_date) AS DATE) AS m, COUNT(id) AS order_cnt FROM orders GROUP BY m ORDER BY m DESC LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 13,
+      "latency_ms": 12
+    },
+    {
+      "case_id": 9,
+      "question": "Which products have low sales?",
+      "expected_tables": [
+        "products",
+        "order_items"
+      ],
+      "retrieved_tables": [
+        "departments",
+        "employees",
+        "customers",
+        "orders",
+        "order_items"
+      ],
+      "recall": 0.5,
+      "sql": "SELECT p.name, COALESCE(SUM(oi.quantity), 0) AS total_sold FROM products AS p LEFT JOIN order_items AS oi ON p.id = oi.product_id GROUP BY p.name ORDER BY total_sold ASC LIMIT 5",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 5,
+      "latency_ms": 15
+    },
+    {
+      "case_id": 10,
+      "question": "Identify customers with declining purchase frequency.",
+      "expected_tables": [
+        "customers",
+        "orders"
+      ],
+      "retrieved_tables": [
+        "orders",
+        "products",
+        "employees"
+      ],
+      "recall": 0.5,
+      "sql": "SELECT c.id, c.first_name, c.last_name, MAX(o.order_date) AS last_order FROM customers AS c JOIN orders AS o ON c.id = o.customer_id GROUP BY c.id, c.first_name, c.last_name HAVING MAX(o.order_date) < CURRENT_TIMESTAMP - INTERVAL '180 DAYS' LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 6,
+      "latency_ms": 16
+    },
+    {
+      "case_id": 11,
+      "question": "List all active employees in Engineering.",
+      "expected_tables": [
+        "employees",
+        "departments"
+      ],
+      "retrieved_tables": [
+        "employees",
+        "payments",
+        "orders",
+        "order_items",
+        "departments"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT e.first_name, e.last_name, e.job_title, e.salary FROM employees AS e JOIN departments AS d ON d.id = e.department_id WHERE d.name = 'Engineering' AND e.is_active = TRUE LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 7,
+      "latency_ms": 14
+    },
+    {
+      "case_id": 12,
+      "question": "What is the total annual payroll across all departments?",
+      "expected_tables": [
+        "employees"
+      ],
+      "retrieved_tables": [
+        "departments",
+        "employees",
+        "payments",
+        "orders",
+        "order_items"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT SUM(salary) AS total_payroll FROM employees WHERE is_active = TRUE LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 1,
+      "latency_ms": 12
+    },
+    {
+      "case_id": 13,
+      "question": "List departments where budget exceeds one million dollars.",
+      "expected_tables": [
+        "departments"
+      ],
+      "retrieved_tables": [
+        "departments",
+        "order_items",
+        "payments",
+        "products",
+        "employees",
+        "customers",
+        "subscriptions",
+        "orders"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT name, budget FROM departments WHERE budget > 1000000 ORDER BY budget DESC LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 3,
+      "latency_ms": 13
+    },
+    {
+      "case_id": 14,
+      "question": "Find the highest paid employee in each department.",
+      "expected_tables": [
+        "employees",
+        "departments"
+      ],
+      "retrieved_tables": [
+        "departments",
+        "employees",
+        "payments",
+        "orders",
+        "order_items"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT DISTINCT ON (department_id) d.name, e.first_name, e.last_name, e.salary FROM employees AS e JOIN departments AS d ON d.id = e.department_id ORDER BY department_id, salary DESC LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 7,
+      "latency_ms": 15
+    },
+    {
+      "case_id": 15,
+      "question": "How many inactive employees are currently recorded?",
+      "expected_tables": [
+        "employees"
+      ],
+      "retrieved_tables": [
+        "customers",
+        "orders",
+        "employees",
+        "order_items",
+        "departments"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT COUNT(*) FROM employees WHERE is_active = FALSE LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 1,
+      "latency_ms": 12
+    },
+    {
+      "case_id": 16,
+      "question": "What is the average salary in the Sales department?",
+      "expected_tables": [
+        "employees",
+        "departments"
+      ],
+      "retrieved_tables": [
+        "employees",
+        "payments",
+        "orders",
+        "order_items",
+        "departments"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT ROUND(CAST(AVG(e.salary) AS DECIMAL), 2) FROM employees AS e JOIN departments AS d ON d.id = e.department_id WHERE d.name = 'Sales' LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 1,
+      "latency_ms": 14
+    },
+    {
+      "case_id": 17,
+      "question": "List employees hired after January 1st, 2023.",
+      "expected_tables": [
+        "employees"
+      ],
+      "retrieved_tables": [
+        "customers",
+        "products",
+        "order_items",
+        "orders",
+        "departments"
+      ],
+      "recall": 0.0,
+      "sql": "SELECT first_name, last_name, hire_date FROM employees WHERE hire_date >= '2023-01-01' ORDER BY hire_date ASC LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 23,
+      "latency_ms": 13
+    },
+    {
+      "case_id": 18,
+      "question": "Count employees grouped by job title.",
+      "expected_tables": [
+        "employees"
+      ],
+      "retrieved_tables": [
+        "customers",
+        "orders",
+        "employees",
+        "order_items",
+        "departments"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT job_title, COUNT(*) AS cnt FROM employees GROUP BY job_title ORDER BY cnt DESC LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 24,
+      "latency_ms": 14
+    },
+    {
+      "case_id": 19,
+      "question": "Which department has the lowest operational budget?",
+      "expected_tables": [
+        "departments"
+      ],
+      "retrieved_tables": [
+        "departments",
+        "customers",
+        "orders",
+        "employees",
+        "order_items"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT name, budget FROM departments ORDER BY budget ASC LIMIT 1",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 1,
+      "latency_ms": 14
+    },
+    {
+      "case_id": 20,
+      "question": "Find all employees with a salary greater than 150000.",
+      "expected_tables": [
+        "employees"
+      ],
+      "retrieved_tables": [
+        "orders",
+        "employees",
+        "products"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT first_name, last_name, salary, job_title FROM employees WHERE salary > 150000 ORDER BY salary DESC LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 8,
+      "latency_ms": 14
+    },
+    {
+      "case_id": 21,
+      "question": "List all products in the Software category.",
+      "expected_tables": [
+        "products"
+      ],
+      "retrieved_tables": [
+        "departments",
+        "payments",
+        "orders",
+        "employees",
+        "order_items"
+      ],
+      "recall": 0.0,
+      "sql": "SELECT name, price, cost FROM products WHERE category = 'Software' ORDER BY price DESC LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 4,
+      "latency_ms": 14
+    },
+    {
+      "case_id": 22,
+      "question": "What is the total inventory valuation at cost?",
+      "expected_tables": [
+        "products"
+      ],
+      "retrieved_tables": [
+        "employees",
+        "order_items",
+        "payments",
+        "orders",
+        "departments"
+      ],
+      "recall": 0.0,
+      "sql": "SELECT ROUND(SUM(cost * stock_quantity), 2) AS inventory_value FROM products LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 1,
+      "latency_ms": 13
+    },
+    {
+      "case_id": 23,
+      "question": "Which products have fewer than 30 items in stock?",
+      "expected_tables": [
+        "products"
+      ],
+      "retrieved_tables": [
+        "departments",
+        "payments",
+        "orders",
+        "employees",
+        "order_items"
+      ],
+      "recall": 0.0,
+      "sql": "SELECT name, category, stock_quantity FROM products WHERE stock_quantity < 30 ORDER BY stock_quantity ASC LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 3,
+      "latency_ms": 12
+    },
+    {
+      "case_id": 24,
+      "question": "Calculate profit margin for each product category.",
+      "expected_tables": [
+        "products"
+      ],
+      "retrieved_tables": [
+        "payments",
+        "order_items",
+        "departments",
+        "orders",
+        "employees",
+        "customers"
+      ],
+      "recall": 0.0,
+      "sql": "SELECT category, ROUND(CAST(AVG((price - cost) / price * 100) AS DECIMAL), 2) AS avg_margin_pct FROM products GROUP BY category ORDER BY avg_margin_pct DESC LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 16,
+      "latency_ms": 15
+    },
+    {
+      "case_id": 25,
+      "question": "Find the single most expensive product in catalog.",
+      "expected_tables": [
+        "products"
+      ],
+      "retrieved_tables": [
+        "employees",
+        "order_items",
+        "payments",
+        "orders",
+        "departments"
+      ],
+      "recall": 0.0,
+      "sql": "SELECT name, price FROM products ORDER BY price DESC LIMIT 1",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 1,
+      "latency_ms": 14
+    },
+    {
+      "case_id": 26,
+      "question": "Count total products per category.",
+      "expected_tables": [
+        "products"
+      ],
+      "retrieved_tables": [
+        "departments",
+        "order_items",
+        "employees",
+        "customers",
+        "orders"
+      ],
+      "recall": 0.0,
+      "sql": "SELECT category, COUNT(*) FROM products GROUP BY category ORDER BY 2 DESC LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 16,
+      "latency_ms": 13
+    },
+    {
+      "case_id": 27,
+      "question": "List products priced between 100 and 500 dollars.",
+      "expected_tables": [
+        "products"
+      ],
+      "retrieved_tables": [
+        "departments",
+        "payments",
+        "products",
+        "order_items",
+        "orders",
+        "employees",
+        "customers",
+        "subscriptions"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT name, price FROM products WHERE price BETWEEN 100 AND 500 ORDER BY price ASC LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 12,
+      "latency_ms": 14
+    },
+    {
+      "case_id": 28,
+      "question": "Which product generated the most units sold?",
+      "expected_tables": [
+        "products",
+        "order_items"
+      ],
+      "retrieved_tables": [
+        "order_items",
+        "subscriptions",
+        "employees",
+        "customers",
+        "orders"
+      ],
+      "recall": 0.5,
+      "sql": "SELECT p.name, SUM(oi.quantity) AS total_units FROM order_items AS oi JOIN products AS p ON p.id = oi.product_id GROUP BY p.name ORDER BY total_units DESC LIMIT 1",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 1,
+      "latency_ms": 16
+    },
+    {
+      "case_id": 29,
+      "question": "List accessories with price greater than 100.",
+      "expected_tables": [
+        "products"
+      ],
+      "retrieved_tables": [
+        "orders",
+        "products",
+        "employees"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT name, price FROM products WHERE category = 'Accessories' AND price > 100 LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 2,
+      "latency_ms": 15
+    },
+    {
+      "case_id": 30,
+      "question": "What is the average product sales price by category?",
+      "expected_tables": [
+        "products"
+      ],
+      "retrieved_tables": [
+        "products",
+        "employees",
+        "payments",
+        "orders",
+        "order_items",
+        "departments"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT category, ROUND(CAST(AVG(price) AS DECIMAL), 2) FROM products GROUP BY category ORDER BY 2 DESC LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 16,
+      "latency_ms": 13
+    },
+    {
+      "case_id": 31,
+      "question": "Count customers by loyalty tier.",
+      "expected_tables": [
+        "customers"
+      ],
+      "retrieved_tables": [
+        "customers",
+        "departments",
+        "order_items",
+        "orders"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT tier, COUNT(*) FROM customers GROUP BY tier ORDER BY 2 DESC LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 4,
+      "latency_ms": 15
+    },
+    {
+      "case_id": 32,
+      "question": "List all Platinum tier customers.",
+      "expected_tables": [
+        "customers"
+      ],
+      "retrieved_tables": [
+        "customers"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT first_name, last_name, email, city, country FROM customers WHERE tier = 'Platinum' LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 6,
+      "latency_ms": 12
+    },
+    {
+      "case_id": 33,
+      "question": "How many customers are located in Germany?",
+      "expected_tables": [
+        "customers"
+      ],
+      "retrieved_tables": [
+        "employees",
+        "order_items",
+        "payments",
+        "orders",
+        "departments"
+      ],
+      "recall": 0.0,
+      "sql": "SELECT COUNT(*) FROM customers WHERE country = 'Germany' LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 1,
+      "latency_ms": 13
+    },
+    {
+      "case_id": 34,
+      "question": "List top five cities with the most customers.",
+      "expected_tables": [
+        "customers"
+      ],
+      "retrieved_tables": [
+        "customers",
+        "orders",
+        "departments",
+        "products"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT city, country, COUNT(*) AS cnt FROM customers GROUP BY city, country ORDER BY cnt DESC LIMIT 5",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 5,
+      "latency_ms": 14
+    },
+    {
+      "case_id": 35,
+      "question": "Which customers have active SaaS subscriptions?",
+      "expected_tables": [
+        "customers",
+        "subscriptions"
+      ],
+      "retrieved_tables": [
+        "subscriptions",
+        "customers",
+        "orders",
+        "order_items",
+        "departments"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT c.first_name, c.last_name, s.plan_name, s.monthly_price FROM subscriptions AS s JOIN customers AS c ON c.id = s.customer_id WHERE s.status = 'active' LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 32,
+      "latency_ms": 14
+    },
+    {
+      "case_id": 36,
+      "question": "What is the Monthly Recurring Revenue from active subscriptions?",
+      "expected_tables": [
+        "subscriptions"
+      ],
+      "retrieved_tables": [
+        "employees",
+        "order_items",
+        "payments",
+        "orders",
+        "departments"
+      ],
+      "recall": 0.0,
+      "sql": "SELECT SUM(monthly_price) AS mrr FROM subscriptions WHERE status = 'active' LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 1,
+      "latency_ms": 14
+    },
+    {
+      "case_id": 37,
+      "question": "Count subscriptions grouped by plan name.",
+      "expected_tables": [
+        "subscriptions"
+      ],
+      "retrieved_tables": [
+        "customers",
+        "orders",
+        "employees",
+        "order_items",
+        "departments"
+      ],
+      "recall": 0.0,
+      "sql": "SELECT plan_name, COUNT(*) FROM subscriptions GROUP BY plan_name ORDER BY 2 DESC LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 3,
+      "latency_ms": 15
+    },
+    {
+      "case_id": 38,
+      "question": "Find customers who have cancelled their subscription.",
+      "expected_tables": [
+        "customers",
+        "subscriptions"
+      ],
+      "retrieved_tables": [
+        "customers",
+        "orders",
+        "order_items",
+        "departments",
+        "employees"
+      ],
+      "recall": 0.5,
+      "sql": "SELECT c.first_name, c.last_name, s.plan_name, s.end_date FROM subscriptions AS s JOIN customers AS c ON c.id = s.customer_id WHERE s.status = 'cancelled' LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 4,
+      "latency_ms": 13
+    },
+    {
+      "case_id": 39,
+      "question": "Count total registered customers by country.",
+      "expected_tables": [
+        "customers"
+      ],
+      "retrieved_tables": [
+        "customers",
+        "orders",
+        "order_items",
+        "departments"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT country, COUNT(*) AS cust_count FROM customers GROUP BY country ORDER BY cust_count DESC LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 10,
+      "latency_ms": 13
+    },
+    {
+      "case_id": 40,
+      "question": "List customers with an Enterprise subscription.",
+      "expected_tables": [
+        "customers",
+        "subscriptions"
+      ],
+      "retrieved_tables": [
+        "orders",
+        "products",
+        "employees"
+      ],
+      "recall": 0.0,
+      "sql": "SELECT c.first_name, c.last_name, c.email FROM subscriptions AS s JOIN customers AS c ON c.id = s.customer_id WHERE s.plan_name = 'Enterprise' LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 20,
+      "latency_ms": 14
+    },
+    {
+      "case_id": 41,
+      "question": "Count total orders by order status.",
+      "expected_tables": [
+        "orders"
+      ],
+      "retrieved_tables": [
+        "payments",
+        "departments"
+      ],
+      "recall": 0.0,
+      "sql": "SELECT status, COUNT(*) FROM orders GROUP BY status ORDER BY 2 DESC LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 5,
+      "latency_ms": 14
+    },
+    {
+      "case_id": 42,
+      "question": "What is the total value of completed orders?",
+      "expected_tables": [
+        "orders"
+      ],
+      "retrieved_tables": [
+        "employees",
+        "order_items",
+        "payments",
+        "orders",
+        "departments"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT SUM(total_amount) AS completed_rev FROM orders WHERE status = 'completed' LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 1,
+      "latency_ms": 15
+    },
+    {
+      "case_id": 43,
+      "question": "How many orders were cancelled?",
+      "expected_tables": [
+        "orders"
+      ],
+      "retrieved_tables": [
+        "employees",
+        "order_items",
+        "products",
+        "departments",
+        "subscriptions"
+      ],
+      "recall": 0.0,
+      "sql": "SELECT COUNT(*) FROM orders WHERE status = 'cancelled' LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 1,
+      "latency_ms": 14
+    },
+    {
+      "case_id": 44,
+      "question": "What payment method is used most frequently?",
+      "expected_tables": [
+        "payments"
+      ],
+      "retrieved_tables": [
+        "payments",
+        "employees",
+        "orders",
+        "order_items",
+        "departments"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT payment_method, COUNT(*) AS txn_count FROM payments WHERE payment_status = 'success' GROUP BY payment_method ORDER BY txn_count DESC LIMIT 1",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 1,
+      "latency_ms": 13
+    },
+    {
+      "case_id": 45,
+      "question": "Calculate total payments settled through credit card.",
+      "expected_tables": [
+        "payments"
+      ],
+      "retrieved_tables": [
+        "customers",
+        "orders",
+        "employees",
+        "order_items",
+        "departments"
+      ],
+      "recall": 0.0,
+      "sql": "SELECT SUM(amount) FROM payments WHERE payment_method = 'credit_card' AND payment_status = 'success' LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 1,
+      "latency_ms": 14
+    },
+    {
+      "case_id": 46,
+      "question": "List orders with total amount greater than 2000.",
+      "expected_tables": [
+        "orders"
+      ],
+      "retrieved_tables": [
+        "orders",
+        "payments",
+        "products",
+        "employees"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT id, customer_id, order_date, total_amount FROM orders WHERE total_amount > 2000 ORDER BY total_amount DESC LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 192,
+      "latency_ms": 14
+    },
+    {
+      "case_id": 47,
+      "question": "Which shipping cities received the most orders?",
+      "expected_tables": [
+        "orders"
+      ],
+      "retrieved_tables": [
+        "employees",
+        "order_items",
+        "payments",
+        "orders",
+        "departments"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT shipping_city, COUNT(*) AS cnt FROM orders GROUP BY shipping_city ORDER BY cnt DESC LIMIT 5",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 5,
+      "latency_ms": 14
+    },
+    {
+      "case_id": 48,
+      "question": "Count orders placed in the last 30 days.",
+      "expected_tables": [
+        "orders"
+      ],
+      "retrieved_tables": [
+        "order_items",
+        "departments",
+        "orders",
+        "payments",
+        "employees"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT COUNT(*) FROM orders WHERE order_date >= CURRENT_TIMESTAMP - INTERVAL '30 DAYS' LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 1,
+      "latency_ms": 11
+    },
+    {
+      "case_id": 49,
+      "question": "What is the total refunded amount across payments?",
+      "expected_tables": [
+        "payments"
+      ],
+      "retrieved_tables": [
+        "payments",
+        "order_items",
+        "orders",
+        "employees",
+        "departments"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT COALESCE(SUM(amount), 0) AS total_refunded FROM payments WHERE payment_status = 'refunded' LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 1,
+      "latency_ms": 13
+    },
+    {
+      "case_id": 50,
+      "question": "Show distribution of order quantities per item.",
+      "expected_tables": [
+        "order_items"
+      ],
+      "retrieved_tables": [
+        "payments",
+        "order_items",
+        "orders"
+      ],
+      "recall": 1.0,
+      "sql": "SELECT quantity, COUNT(*) AS count_items FROM order_items GROUP BY quantity ORDER BY quantity ASC LIMIT 500",
+      "validation_passed": true,
+      "execution_success": true,
+      "row_count": 3,
+      "latency_ms": 13
+    }
+  ]
+}
