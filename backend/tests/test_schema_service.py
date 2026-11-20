@@ -28,3 +28,4 @@ def test_schema_introspection_and_er_diagram():
     preview = SchemaService.get_table_preview(conn, "departments", limit=5)
     assert len(preview["rows"]) > 0
     assert "name" in preview["columns"]
+

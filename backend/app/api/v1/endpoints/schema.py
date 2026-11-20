@@ -149,3 +149,4 @@ def index_schema_vectors(
         "message": f"Successfully indexed {count} schema documents in Qdrant.",
         "documents_indexed": count,
     }
+

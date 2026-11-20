@@ -111,3 +111,4 @@ def decrypt_secret(cipher_text: str) -> str:
         return decrypted.decode("utf-8")
     except Exception:
         return ""
+

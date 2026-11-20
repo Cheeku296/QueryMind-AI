@@ -312,3 +312,4 @@ export const SQLWorkspace: React.FC = () => {
     </div>
   );
 };
+

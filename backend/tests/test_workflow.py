@@ -47,3 +47,4 @@ def test_langgraph_pipeline_execution():
     assert final_state["execution_result"]["success"] is True
     assert len(final_state["execution_result"]["rows"]) > 0
     assert len(final_state["node_events"]) >= 6
+

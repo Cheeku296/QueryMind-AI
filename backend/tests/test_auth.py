@@ -45,3 +45,4 @@ def test_fernet_credential_encryption():
     assert encrypted != secret_pass
     decrypted = decrypt_secret(encrypted)
     assert decrypted == secret_pass
+

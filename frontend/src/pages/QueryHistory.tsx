@@ -179,3 +179,4 @@ export const QueryHistory: React.FC = () => {
     </div>
   );
 };
+

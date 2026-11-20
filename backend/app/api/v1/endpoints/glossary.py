@@ -81,3 +81,4 @@ def delete_glossary_term(
     if not success:
         raise HTTPException(status_code=404, detail="Glossary term not found.")
     return {"message": "Glossary term deleted."}
+

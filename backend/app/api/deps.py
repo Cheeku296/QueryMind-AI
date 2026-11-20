@@ -94,3 +94,4 @@ def require_role(allowed_roles: list[WorkspaceRole]):
             )
         return member
     return role_checker
+

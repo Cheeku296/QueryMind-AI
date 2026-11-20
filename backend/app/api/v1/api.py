@@ -31,3 +31,4 @@ api_router.include_router(reports.router, prefix="/reports", tags=["Reports"])
 api_router.include_router(agents.router, prefix="/agents", tags=["Agent Execution Monitor"])
 api_router.include_router(analytics.router, prefix="/analytics", tags=["Analytics"])
 api_router.include_router(settings.router, prefix="", tags=["Settings & Health"])
+

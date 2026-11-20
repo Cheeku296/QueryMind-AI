@@ -195,3 +195,4 @@ def add_workspace_member(
     db.commit()
 
     return {"message": f"Added {target_user.email} as {req.role.value} to workspace."}
+

@@ -155,3 +155,4 @@ def get_agent_performance(
         "failed_runs": failed_runs,
         "workflow_success_rate": round((completed_runs / total_runs * 100), 1) if total_runs > 0 else 100.0,
     }
+

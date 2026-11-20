@@ -160,11 +160,14 @@ def sql_generation_node(state: QueryMindAgentState) -> Dict[str, Any]:
     """Uses Gemini to generate dialect-specific SQL with structured output."""
     start_t = time.perf_counter()
     events = list(state.get("node_events", []))
+    conn = state.get("connection_model")
+    db_type = conn.database_type.lower() if conn else "postgresql"
+    dialect_name = "MySQL" if db_type == "mysql" else "PostgreSQL"
     events.append({
         "node": "sql_generation",
         "status": "running",
         "timestamp": time.time(),
-        "message": "Generating PostgreSQL query with Google Gemini...",
+        "message": f"Generating {dialect_name} query with Google Gemini...",
     })
 
     q = state["user_question"]
@@ -172,7 +175,7 @@ def sql_generation_node(state: QueryMindAgentState) -> Dict[str, Any]:
     context_str = schema_info.get("compact_context", "")
 
     prompt = f"""You are the SQL Generation Agent of QueryMind AI.
-Generate a precise, safe, read-only PostgreSQL query to answer the user question.
+Generate a precise, safe, read-only {dialect_name} query to answer the user question.
 
 DATABASE SCHEMA CONTEXT:
 {context_str}
@@ -184,7 +187,7 @@ PREVIOUS CONVERSATION CONTEXT:
 {json.dumps(state.get('conversation_context', [])[-3:])}
 
 REQUIREMENTS:
-1. Generate valid PostgreSQL SQL only.
+1. Generate valid {dialect_name} SQL only.
 2. Never perform SELECT * unless strictly necessary; select explicit, relevant columns.
 3. Use proper JOIN conditions based on the foreign key relationships shown above.
 4. Use standard aggregation (SUM, COUNT, AVG) and GROUP BY where appropriate.
@@ -203,7 +206,7 @@ REQUIREMENTS:
             res: SQLGenerationOutput = ai_provider.generate_structured(
                 prompt=prompt,
                 schema_class=SQLGenerationOutput,
-                system_instruction="You are an expert PostgreSQL engineer.",
+                system_instruction=f"You are an expert {dialect_name} database engineer.",
             )
             sql = res.sql.strip().rstrip(";")
             explanation = res.explanation
@@ -269,9 +272,11 @@ def sql_validation_node(state: QueryMindAgentState) -> Dict[str, Any]:
     })
 
     raw_sql = state.get("generated_sql", "")
+    conn = state.get("connection_model")
+    dialect = "mysql" if conn and conn.database_type.lower() == "mysql" else "postgres"
     val_res = SQLValidator.validate_sql(
         sql=raw_sql,
-        dialect="postgres",
+        dialect=dialect,
         max_rows=settings.SQL_MAX_ROWS_RETURNED,
     )
 

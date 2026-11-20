@@ -75,3 +75,4 @@ def test_gemini_api(current_user: User = Depends(get_current_user)):
         "message": message,
         "details": info,
     }
+

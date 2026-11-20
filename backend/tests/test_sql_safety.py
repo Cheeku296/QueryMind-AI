@@ -77,3 +77,4 @@ def test_complex_cte_and_joins_allowed():
     assert result.is_valid is True
     assert "customers" in result.tables_used
     assert "orders" in result.tables_used
+

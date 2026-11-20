@@ -113,3 +113,4 @@ docker compose logs -f backend
 # View multi-agent execution events
 docker compose logs -f backend | grep -i agent
 ```
+

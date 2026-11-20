@@ -35,3 +35,4 @@ class GlossaryResponse(BaseModel):
 
     class Config:
         from_attributes = True
+

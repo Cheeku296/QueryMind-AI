@@ -294,3 +294,4 @@ def seed_demo_database(db_url: str = DEMO_DB_URL):
 
 if __name__ == "__main__":
     seed_demo_database()
+

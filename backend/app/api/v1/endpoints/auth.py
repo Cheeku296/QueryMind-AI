@@ -226,3 +226,4 @@ def reset_password(req: PasswordResetConfirm, db: Session = Depends(get_sync_db)
     user.password_hash = hash_password(req.new_password)
     db.commit()
     return {"message": "Password updated successfully."}
+

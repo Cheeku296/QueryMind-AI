@@ -267,3 +267,4 @@ export const SchemaExplorer: React.FC = () => {
     </div>
   );
 };
+

@@ -1,5 +1,6 @@
 import logging
 from typing import Any, Dict, List, Optional, Tuple
+from urllib.parse import quote_plus
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 
@@ -14,11 +15,13 @@ class ConnectionService:
     def get_connection_url(conn: DatabaseConnection, readonly: bool = True) -> str:
         """Constructs a secure SQLAlchemy database URL from connection details."""
         raw_password = decrypt_secret(conn.encrypted_credentials)
+        safe_user = quote_plus(conn.username)
+        safe_password = quote_plus(raw_password)
         if conn.database_type.lower() == "postgresql":
             # Using psycopg3 driver
-            return f"postgresql+psycopg://{conn.username}:{raw_password}@{conn.host}:{conn.port}/{conn.database_name}"
+            return f"postgresql+psycopg://{safe_user}:{safe_password}@{conn.host}:{conn.port}/{conn.database_name}"
         elif conn.database_type.lower() == "mysql":
-            return f"mysql+pymysql://{conn.username}:{raw_password}@{conn.host}:{conn.port}/{conn.database_name}"
+            return f"mysql+pymysql://{safe_user}:{safe_password}@{conn.host}:{conn.port}/{conn.database_name}"
         elif conn.database_type.lower() == "sqlite":
             return f"sqlite:///{conn.database_name}"
         else:
@@ -37,17 +40,25 @@ class ConnectionService:
         timeout_seconds: int = 5,
     ) -> Tuple[bool, str, Dict[str, Any]]:
         """Tests external database connectivity with real handshake."""
-        if database_type.lower() != "postgresql":
+        db_type = database_type.lower()
+        if db_type not in ("postgresql", "mysql"):
             return False, f"Database type '{database_type}' not yet configured.", {}
 
-        url = f"postgresql+psycopg://{username}:{password}@{host}:{port}/{database_name}"
-        connect_args = {"connect_timeout": timeout_seconds}
+        safe_user = quote_plus(username)
+        safe_password = quote_plus(password)
+        if db_type == "postgresql":
+            url = f"postgresql+psycopg://{safe_user}:{safe_password}@{host}:{port}/{database_name}"
+            test_query = text("SELECT version(), current_database(), current_user;")
+        else:
+            url = f"mysql+pymysql://{safe_user}:{safe_password}@{host}:{port}/{database_name}"
+            test_query = text("SELECT VERSION(), DATABASE(), CURRENT_USER();")
 
+        connect_args = {"connect_timeout": timeout_seconds}
         engine = None
         try:
             engine = create_engine(url, connect_args=connect_args, pool_pre_ping=True)
             with engine.connect() as connection:
-                result = connection.execute(text("SELECT version(), current_database(), current_user;"))
+                result = connection.execute(test_query)
                 row = result.fetchone()
                 server_info = {
                     "version": row[0] if row else "Unknown",
@@ -107,3 +118,4 @@ class ConnectionService:
             username=conn.username,
             password=raw_password,
         )
+

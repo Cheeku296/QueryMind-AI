@@ -105,3 +105,4 @@ Description: The annualized value of all active recurring subscription contracts
 - **Zero Cross-Workspace Leakage:** Every Qdrant search strictly enforces payload filter `Must([FieldCondition(key="connection_id", match=MatchValue(value=conn_id))])`.
 - **Latency:** Vector search against 100,000 indexed schema entities in Qdrant executes in **< 4ms**.
 - **Cold-Start Fallback:** If `GEMINI_API_KEY` is not yet supplied by the operator, the embedding service transparently falls back to deterministic unit vectors, allowing unit tests, migrations, and UI flows to run without crashing.
+

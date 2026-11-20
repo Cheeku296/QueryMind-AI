@@ -50,3 +50,4 @@ class SQLCorrectionOutput(BaseModel):
     corrected_sql: str = Field(description="The revised SQL statement resolving the previous error.")
     explanation_of_fix: str = Field(description="Explanation of the fix made.")
     tables_used: List[str] = Field(default_factory=list, description="Tables used in the corrected query.")
+

@@ -50,3 +50,4 @@ class ConnectionResponse(BaseModel):
 
     class Config:
         from_attributes = True
+

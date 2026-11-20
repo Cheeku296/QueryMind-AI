@@ -48,3 +48,4 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
     set({ activeConnectionId: id });
   },
 }));
+

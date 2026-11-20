@@ -125,3 +125,4 @@ CREATE TABLE subscriptions (
 CREATE INDEX idx_subscriptions_customer ON subscriptions(customer_id);
 CREATE INDEX idx_subscriptions_status ON subscriptions(status);
 COMMENT ON TABLE subscriptions IS 'Recurring SaaS service agreements linked to customers';
+

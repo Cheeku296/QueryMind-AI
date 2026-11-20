@@ -259,3 +259,4 @@ def test_connection_status(
         "message": message,
         "server_info": server_info,
     }
+

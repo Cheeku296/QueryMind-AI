@@ -44,3 +44,4 @@ class Message(Base):
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
 
     conversation = relationship("Conversation", back_populates="messages")
+

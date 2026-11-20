@@ -18,3 +18,4 @@ def test_qdrant_schema_retrieval():
     assert "tables" in retrieved
     assert "compact_context" in retrieved
     assert len(retrieved["compact_context"]) > 0
+

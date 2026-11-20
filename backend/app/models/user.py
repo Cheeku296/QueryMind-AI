@@ -29,3 +29,4 @@ class User(Base):
     saved_queries = relationship("SavedQuery", back_populates="user", cascade="all, delete-orphan")
     conversations = relationship("Conversation", back_populates="user", cascade="all, delete-orphan")
     reports = relationship("Report", back_populates="user", cascade="all, delete-orphan")
+

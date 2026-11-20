@@ -15,6 +15,8 @@ class SchemaService:
         """Performs comprehensive schema introspection on an external database."""
         if conn.database_type.lower() == "postgresql":
             return cls._introspect_postgresql(conn)
+        elif conn.database_type.lower() == "mysql":
+            return cls._introspect_mysql(conn)
         else:
             raise NotImplementedError(f"Introspection for '{conn.database_type}' not yet implemented.")
 
@@ -169,6 +171,162 @@ class SchemaService:
         }
 
     @classmethod
+    def _introspect_mysql(cls, conn: DatabaseConnection) -> Dict[str, Any]:
+        url = ConnectionService.get_connection_url(conn)
+        engine = create_engine(url, pool_pre_ping=True)
+
+        tables_meta: Dict[str, Dict[str, Any]] = {}
+        relationships: List[Dict[str, Any]] = []
+
+        try:
+            with engine.connect() as connection:
+                # 1. Fetch tables and views
+                tables_query = text("""
+                    SELECT 
+                        t.TABLE_NAME,
+                        t.TABLE_TYPE,
+                        COALESCE(t.TABLE_ROWS, 0) as row_count,
+                        COALESCE(t.TABLE_COMMENT, '') as table_comment
+                    FROM information_schema.TABLES t
+                    WHERE t.TABLE_SCHEMA = :db_name
+                    ORDER BY t.TABLE_NAME;
+                """)
+                for row in connection.execute(tables_query, {"db_name": conn.database_name}):
+                    tbl_name = row[0]
+                    tbl_type = row[1]
+                    row_cnt = max(0, int(row[2]))
+                    comment = row[3] or ""
+
+                    tables_meta[tbl_name] = {
+                        "name": tbl_name,
+                        "schema": conn.database_name,
+                        "type": "table" if "TABLE" in tbl_type.upper() else "view",
+                        "row_count": row_cnt,
+                        "description": comment,
+                        "columns": [],
+                        "primary_key": [],
+                        "foreign_keys": [],
+                        "indexes": [],
+                        "unique_constraints": [],
+                    }
+
+                # 2. Fetch columns
+                cols_query = text("""
+                    SELECT 
+                        c.TABLE_NAME,
+                        c.COLUMN_NAME,
+                        c.DATA_TYPE,
+                        c.IS_NULLABLE,
+                        c.COLUMN_DEFAULT,
+                        COALESCE(c.COLUMN_COMMENT, '') as col_comment
+                    FROM information_schema.COLUMNS c
+                    WHERE c.TABLE_SCHEMA = :db_name
+                    ORDER BY c.TABLE_NAME, c.ORDINAL_POSITION;
+                """)
+                for row in connection.execute(cols_query, {"db_name": conn.database_name}):
+                    tbl_name = row[0]
+                    if tbl_name in tables_meta:
+                        col_info = {
+                            "name": row[1],
+                            "data_type": row[2],
+                            "is_nullable": (row[3] == "YES"),
+                            "default_value": row[4],
+                            "description": row[5] or "",
+                        }
+                        tables_meta[tbl_name]["columns"].append(col_info)
+
+                # 3. Fetch primary keys
+                pk_query = text("""
+                    SELECT
+                        kcu.TABLE_NAME, 
+                        kcu.COLUMN_NAME
+                    FROM information_schema.TABLE_CONSTRAINTS tc
+                    JOIN information_schema.KEY_COLUMN_USAGE kcu
+                        ON tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
+                        AND tc.TABLE_SCHEMA = kcu.TABLE_SCHEMA
+                    WHERE tc.CONSTRAINT_TYPE = 'PRIMARY KEY'
+                        AND tc.TABLE_SCHEMA = :db_name
+                    ORDER BY kcu.TABLE_NAME, kcu.ORDINAL_POSITION;
+                """)
+                for row in connection.execute(pk_query, {"db_name": conn.database_name}):
+                    tbl_name = row[0]
+                    col_name = row[1]
+                    if tbl_name in tables_meta:
+                        tables_meta[tbl_name]["primary_key"].append(col_name)
+
+                # 4. Fetch foreign keys
+                fk_query = text("""
+                    SELECT
+                        kcu.TABLE_NAME as source_table,
+                        kcu.COLUMN_NAME as source_column,
+                        kcu.REFERENCED_TABLE_NAME as target_table,
+                        kcu.REFERENCED_COLUMN_NAME as target_column,
+                        kcu.CONSTRAINT_NAME as constraint_name
+                    FROM information_schema.KEY_COLUMN_USAGE kcu
+                    WHERE kcu.REFERENCED_TABLE_NAME IS NOT NULL
+                        AND kcu.TABLE_SCHEMA = :db_name;
+                """)
+                for row in connection.execute(fk_query, {"db_name": conn.database_name}):
+                    src_tbl = row[0]
+                    src_col = row[1]
+                    tgt_tbl = row[2]
+                    tgt_col = row[3]
+                    c_name = row[4]
+
+                    if src_tbl in tables_meta:
+                        tables_meta[src_tbl]["foreign_keys"].append({
+                            "column": src_col,
+                            "target_table": tgt_tbl,
+                            "target_column": tgt_col,
+                            "constraint_name": c_name,
+                        })
+
+                        relationships.append({
+                            "id": f"{src_tbl}_{src_col}_to_{tgt_tbl}_{tgt_col}",
+                            "source_table": src_tbl,
+                            "source_column": src_col,
+                            "target_table": tgt_tbl,
+                            "target_column": tgt_col,
+                            "type": "many_to_one",
+                        })
+
+                # 5. Fetch indexes
+                idx_query = text("""
+                    SELECT 
+                        TABLE_NAME,
+                        INDEX_NAME,
+                        COLUMN_NAME,
+                        NON_UNIQUE
+                    FROM information_schema.STATISTICS
+                    WHERE TABLE_SCHEMA = :db_name
+                    ORDER BY TABLE_NAME, INDEX_NAME, SEQ_IN_INDEX;
+                """)
+                for row in connection.execute(idx_query, {"db_name": conn.database_name}):
+                    tbl_name = row[0]
+                    idx_name = row[1]
+                    col_name = row[2]
+                    is_unique = (row[3] == 0)
+
+                    if tbl_name in tables_meta:
+                        existing = next((i for i in tables_meta[tbl_name]["indexes"] if i["name"] == idx_name), None)
+                        if existing:
+                            existing["columns"].append(col_name)
+                        else:
+                            tables_meta[tbl_name]["indexes"].append({
+                                "name": idx_name,
+                                "is_unique": is_unique,
+                                "columns": [col_name],
+                            })
+        finally:
+            engine.dispose()
+
+        return {
+            "tables": list(tables_meta.values()),
+            "relationships": relationships,
+            "total_tables": len(tables_meta),
+        }
+
+    @classmethod
     def get_table_preview(
         cls, conn: DatabaseConnection, table_name: str, limit: int = 10
     ) -> Dict[str, Any]:
@@ -183,7 +341,10 @@ class SchemaService:
 
         try:
             with engine.connect() as connection:
-                query = text(f'SELECT * FROM public."{table_name}" LIMIT :limit;')
+                if conn.database_type.lower() == "postgresql":
+                    query = text(f'SELECT * FROM public."{table_name}" LIMIT :limit;')
+                else:
+                    query = text(f'SELECT * FROM `{table_name}` LIMIT :limit;')
                 result = connection.execute(query, {"limit": safe_limit})
                 columns = list(result.keys())
                 rows = [list(row) for row in result.fetchall()]

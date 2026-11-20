@@ -205,3 +205,4 @@ def format_sql(req: SQLFormatRequest):
         return {"formatted_sql": formatted[0] if formatted else req.sql}
     except Exception as e:
         return {"formatted_sql": req.sql, "error": str(e)}
+

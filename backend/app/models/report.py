@@ -22,3 +22,4 @@ class Report(Base):
 
     workspace = relationship("Workspace", back_populates="reports")
     user = relationship("User", back_populates="reports")
+

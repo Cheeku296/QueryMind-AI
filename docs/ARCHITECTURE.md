@@ -64,3 +64,4 @@ flowchart TD
    - Fernet symmetric credential encryption (database passwords never stored in plaintext).
    - Hard enforcement of `SET TRANSACTION READ ONLY` and `SET statement_timeout = 15000`.
    - Automatic query row limit injection (`LIMIT 500`).
+

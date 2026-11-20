@@ -60,6 +60,8 @@ class EmbeddingProvider:
                     return arr.tolist()
             except Exception as e:
                 logger.warning(f"Gemini embedding API call failed: {e}. Falling back to deterministic embedding.")
+                if "404" in str(e) or "NOT_FOUND" in str(e) or "403" in str(e):
+                    self._client = None
 
         # Deterministic semantic hash fallback when Gemini key is not configured or offline
         return self._deterministic_fallback_embed(text)
@@ -87,3 +89,4 @@ class EmbeddingProvider:
 
 
 embedding_provider = EmbeddingProvider()
+

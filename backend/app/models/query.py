@@ -51,3 +51,4 @@ class SavedQuery(Base):
 
     workspace = relationship("Workspace", back_populates="saved_queries")
     user = relationship("User", back_populates="saved_queries")
+

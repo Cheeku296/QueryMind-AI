@@ -28,3 +28,4 @@ class BusinessGlossary(Base):
 
     workspace = relationship("Workspace", back_populates="glossary_terms")
     connection = relationship("DatabaseConnection", back_populates="glossary_terms")
+

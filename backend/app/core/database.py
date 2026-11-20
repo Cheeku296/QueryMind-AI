@@ -67,3 +67,4 @@ def get_sync_db() -> Generator:
         raise
     finally:
         db.close()
+

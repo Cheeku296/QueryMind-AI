@@ -229,10 +229,18 @@ export const Connections: React.FC = () => {
                   <label className="block text-typography-secondary font-medium mb-1">Database Type</label>
                   <select
                     value={formData.database_type}
-                    onChange={e => setFormData({ ...formData, database_type: e.target.value })}
+                    onChange={e => {
+                      const newType = e.target.value;
+                      setFormData({
+                        ...formData,
+                        database_type: newType,
+                        port: newType === 'mysql' ? (formData.port === 5432 ? 3306 : formData.port) : (formData.port === 3306 ? 5432 : formData.port)
+                      });
+                    }}
                     className="w-full bg-background-elevated border border-border rounded-lg px-3 py-2 text-white focus:outline-none"
                   >
                     <option value="postgresql">PostgreSQL</option>
+                    <option value="mysql">MySQL</option>
                   </select>
                 </div>
                 <div>
@@ -340,3 +348,4 @@ export const Connections: React.FC = () => {
     </div>
   );
 };
+

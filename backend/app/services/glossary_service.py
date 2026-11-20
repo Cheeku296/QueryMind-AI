@@ -123,3 +123,4 @@ class GlossaryService:
         db.delete(entry)
         db.commit()
         return True
+

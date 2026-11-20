@@ -49,3 +49,4 @@ def sync_schema_background(workspace_id: str, connection_id: str):
         return {"status": "failed", "error": str(e)}
     finally:
         db.close()
+

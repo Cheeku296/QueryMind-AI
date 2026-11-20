@@ -262,3 +262,4 @@ For comprehensive deep-dives into QueryMind's architecture and modules:
 ## 📄 License
 
 QueryMind AI is licensed under the [MIT License](LICENSE).
+

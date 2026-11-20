@@ -47,3 +47,4 @@ class WorkspaceMember(Base):
 
     workspace = relationship("Workspace", back_populates="members")
     user = relationship("User", back_populates="workspace_memberships")
+

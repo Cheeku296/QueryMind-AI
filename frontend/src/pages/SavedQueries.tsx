@@ -156,3 +156,4 @@ export const SavedQueries: React.FC = () => {
     </div>
   );
 };
+

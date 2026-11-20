@@ -160,3 +160,4 @@ def delete_query_history(
     db.delete(q_item)
     db.commit()
     return {"message": "Query log entry deleted."}
+

@@ -21,3 +21,4 @@ class AuditLog(Base):
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
 
     workspace = relationship("Workspace", back_populates="audit_logs")
+

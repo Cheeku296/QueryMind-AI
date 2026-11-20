@@ -49,3 +49,4 @@ export const TableNode: React.FC<{ data: any }> = ({ data }) => {
     </div>
   );
 };
+

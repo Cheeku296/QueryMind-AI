@@ -58,3 +58,4 @@ class SavedQueryResponse(BaseModel):
 
     class Config:
         from_attributes = True
+

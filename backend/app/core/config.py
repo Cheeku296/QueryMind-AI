@@ -4,9 +4,18 @@ from pydantic import AnyHttpUrl, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ROOT_DIR = os.path.dirname(BACKEND_DIR)
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=[
+            os.path.join(ROOT_DIR, ".env"),
+            os.path.join(BACKEND_DIR, ".env"),
+            ".env",
+            "backend/.env",
+        ],
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
@@ -80,3 +89,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+

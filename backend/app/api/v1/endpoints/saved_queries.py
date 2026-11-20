@@ -118,3 +118,4 @@ def delete_saved_query(
     db.delete(saved)
     db.commit()
     return {"message": "Saved query deleted."}
+

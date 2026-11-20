@@ -89,3 +89,4 @@ QueryMind uses **Argon2id** (the memory-hard password hash recommended by OWASP 
 - **`admin`:** Connection management, schema sync, glossary definitions.
 - **`member`:** Conversational querying, SQL IDE execution, report generation.
 - **`viewer`:** Read-only access to saved queries, reports, and dashboards.
+

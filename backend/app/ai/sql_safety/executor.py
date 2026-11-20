@@ -63,10 +63,16 @@ class SQLExecutor:
         start_time = time.perf_counter()
         try:
             with engine.connect() as connection:
-                # 1. Enforce read-only transaction and statement timeout in PostgreSQL
+                # 1. Enforce read-only transaction and statement timeout in PostgreSQL / MySQL
                 if conn.database_type.lower() == "postgresql":
                     connection.execute(text(f"SET statement_timeout = '{timeout_seconds * 1000}';"))
                     connection.execute(text("SET TRANSACTION READ ONLY;"))
+                elif conn.database_type.lower() == "mysql":
+                    try:
+                        connection.execute(text(f"SET max_execution_time = {timeout_seconds * 1000};"))
+                        connection.execute(text("SET TRANSACTION READ ONLY;"))
+                    except Exception as set_err:
+                        logger.debug(f"MySQL session guard notice: {set_err}")
 
                 # 2. Execute validated query
                 cursor = connection.execute(text(validated_sql))
@@ -111,3 +117,4 @@ class SQLExecutor:
             )
         finally:
             engine.dispose()
+

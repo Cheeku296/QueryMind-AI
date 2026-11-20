@@ -188,3 +188,4 @@ Each event includes:
 - `event: node_start` — Node name and timestamp.
 - `event: node_complete` — Node results and metrics.
 - `event: final_message` — Complete payload with formatted markdown, SQL, dataset, and chart specifications.
+

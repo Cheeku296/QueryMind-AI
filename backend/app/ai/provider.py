@@ -60,6 +60,22 @@ class AIProviderManager:
         else:
             raise ValueError(f"Unsupported LLM provider: {self.provider_name}")
 
+    def _extract_text(self, content: Any) -> str:
+        """Safely extracts text string from string or multimodal list content."""
+        if isinstance(content, str):
+            return content.strip()
+        elif isinstance(content, list):
+            parts = []
+            for item in content:
+                if isinstance(item, str):
+                    parts.append(item)
+                elif isinstance(item, dict) and "text" in item:
+                    parts.append(item["text"])
+                elif hasattr(item, "text"):
+                    parts.append(getattr(item, "text"))
+            return "".join(parts).strip()
+        return str(content).strip()
+
     def test_connectivity(self) -> Tuple[bool, str, Dict[str, Any]]:
         """Performs a real live test against Google Gemini API."""
         if not self.is_configured():
@@ -73,7 +89,7 @@ class AIProviderManager:
                 HumanMessage(content="Respond with the exact word 'READY' and nothing else.")
             ])
             duration_ms = int((time.perf_counter() - start_time) * 1000)
-            text_resp = response.content.strip() if hasattr(response, "content") else str(response)
+            text_resp = self._extract_text(response.content) if hasattr(response, "content") else str(response)
 
             return True, f"Gemini API handshake successful ({duration_ms}ms).", {
                 "provider": "gemini",
@@ -125,7 +141,8 @@ class AIProviderManager:
         messages.append(HumanMessage(content=prompt))
 
         response = llm.invoke(messages)
-        return response.content.strip() if hasattr(response, "content") else str(response)
+        return self._extract_text(response.content) if hasattr(response, "content") else str(response)
 
 
 ai_provider = AIProviderManager()
+

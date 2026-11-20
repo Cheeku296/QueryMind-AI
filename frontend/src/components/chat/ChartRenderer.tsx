@@ -136,3 +136,4 @@ export const ChartRenderer: React.FC<ChartProps> = ({ chartSpec }) => {
     </div>
   );
 };
+
